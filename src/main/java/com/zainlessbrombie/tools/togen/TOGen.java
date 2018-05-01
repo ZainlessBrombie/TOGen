@@ -3,10 +3,7 @@ package com.zainlessbrombie.tools.togen;
 import com.zainlessbrombie.tools.togen.testClasses.A;
 
 import javax.validation.constraints.NotNull;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Modifier;
+import java.lang.reflect.*;
 import java.security.SecureRandom;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -109,7 +106,9 @@ public class TOGen {
                             } catch (ArrayIndexOutOfBoundsException exc) {throw new RuntimeException("Could not find ordinal"+e.enumOrdinal()+" in "+field.getType());}
                         else
                             try {
-                                toSet = field.getType().getMethod("valueOf",String.class).invoke(null,e.enumConstant());
+                                Method valueOf = field.getType().getMethod("valueOf",String.class);
+                                valueOf.setAccessible(true);
+                                toSet = valueOf.invoke(null,e.enumConstant());
                             } catch(InvocationTargetException exc) {throw new RuntimeException("Could not find enum constant "+e.enumConstant()+" in "+field.getType()+" for field "+field);}
                     } else {
                         toSet = field.getType().getEnumConstants().length == 0 ? null : field.getType().getEnumConstants()[0];
@@ -137,13 +136,10 @@ public class TOGen {
             }
             Constructor<T> ret = c.getDeclaredConstructor();
             if((ret.getModifiers() & Modifier.PUBLIC) == 0) {
-                if (ret.getDeclaredAnnotation(TOValue.UseConstructor.class) == null) {
-                    // no annotation
+                if (ret.getDeclaredAnnotation(TOValue.UseConstructor.class) == null) // no annotation
                     throw new RuntimeException("The zero arg constructor on "+c+" is not public. If it is supposed to be used, use the @UseConstructor annotation on the constructor");
-                } else {
-                    ret.setAccessible(true);
-                }
             }
+            ret.setAccessible(true);
             return ret;
         } catch (NoSuchMethodException e) {
             throw new RuntimeException("Could not find zero argument constructor for "+c+". Note that argument constructors not supported in this version of TOGen yet.");

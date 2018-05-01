@@ -41,6 +41,10 @@ public class A {
     @TOValue.DoubleArr(32.1)
     double[] n;
 
+
+    @TOValue.Enum(enumClass = TestEnum.class,enumConstant = "B")
+    TestEnum en;
+
         /*@TOValue.String("random: {random 1 10} {timestamp} {className} {generated test}  {fieldName} \\\\ {counter} {}")
         String s;
         @TOValue.RandomDouble(upper = 100)
@@ -76,6 +80,9 @@ public class A {
         @TOValue.Double(32.1)
         double n;*/
 
+        enum TestEnum {
+            A,B,C;
+        }
 
     /*
     @TOValue.String("random: {random 1 10} {timestamp} {className} {generated test}  {fieldName} \\\\ {counter} {}")
