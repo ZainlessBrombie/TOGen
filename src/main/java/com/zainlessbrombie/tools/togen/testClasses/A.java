@@ -39,10 +39,10 @@ public class A {
     @TOValue.DoubleArr(9.1)
     Double[] m;
     @TOValue.DoubleArr(32.1)
-    double[] n;
+    @TOValue.Null
+    double[] n = new double[]{1,2,3};
 
-
-    @TOValue.EnumArr(enumClass = TestEnum.class,enumOrdinals = {1,0})
+    @TOValue.Null
     TestEnum[] en;
 
         /*@TOValue.String("random: {random 1 10} {timestamp} {className} {generated test}  {fieldName} \\\\ {counter} {}")

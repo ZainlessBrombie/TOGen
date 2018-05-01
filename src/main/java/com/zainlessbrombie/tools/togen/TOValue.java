@@ -133,6 +133,14 @@ public class TOValue { // todo enum
     public @interface UseConstructor {
     }
 
+
+    @Retention(RetentionPolicy.RUNTIME)
+    @Target(ElementType.FIELD)
+    public @interface Ignore {
+    }
+
+
+
     // todo ignore
 
     

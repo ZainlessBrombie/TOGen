@@ -76,6 +76,14 @@ public class TOGen {
             try {
                 path.add(field.getName());
 
+                if(field.getAnnotation(TOValue.Null.class) != null) {
+                    field.set(ret,null);
+                    continue;
+                }
+                if(field.getAnnotation(TOValue.Ignore.class) != null) {
+                    continue;
+                }
+
                 List<T2<TOGeneratorDecider,TOValueGen<?>>> customs = generators.getOrDefault(field.getType(),Collections.emptyList());
                 Optional<TOValueGen<?>> max = customs.stream()
                         .map(t2 -> new T2<>(t2.o1.decide(path,field,toGen),t2.o2))
