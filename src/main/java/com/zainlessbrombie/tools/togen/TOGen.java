@@ -1,5 +1,7 @@
 package com.zainlessbrombie.tools.togen;
 
+import com.zainlessbrombie.tools.togen.testClasses.A;
+
 import javax.validation.constraints.NotNull;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
@@ -24,56 +26,7 @@ public class TOGen {
 
     }
 
-    public static class A {
-        @TOValue.String("random: {random 1 10} {timestamp} {className} {generated test}  {fieldName} \\\\ {counter} {}")
-        String s;
-        @TOValue.Boolean(true)
-        boolean x;
-        @TOValue.Boolean(true)
-        Boolean y;
-        @TOValue.Byte(100)
-        byte a;
-        @TOValue.Byte(101)
-        Byte b;
-        @TOValue.Char('c')
-        char c;
-        @TOValue.Char('x')
-        Character d;
-        @TOValue.Short(123)
-        Short e;
-        @TOValue.Short(321)
-        short f;
-        @TOValue.Integer(99)
-        Integer g;
-        @TOValue.Integer(90)
-        int h;
-        @TOValue.Long(76)
-        Long i;
-        @TOValue.Long(23)
-        long j;
-        @TOValue.Float(3.2F)
-        Float k;
-        @TOValue.Float(43.2F)
-        float l;
-        @TOValue.Double(9.1)
-        Double m;
-        @TOValue.Double(32.1)
-        double n;
 
-        B rec;
-
-
-        public A() {
-
-        }
-    }
-    static class B {
-        public B() {
-
-        }
-        @TOValue.String("path is {path}")
-        String pathTest;
-    }
 
 
     SecureRandom random = new SecureRandom(); // todo collection, set
@@ -112,10 +65,12 @@ public class TOGen {
             throw new RuntimeException("Could not generate "+toGenerate+" because of an IllegalAccessException. If this doesn't ring a bell this is probably an internal error. If so please open a git ticket if you have the time",e);
         } catch (InvocationTargetException e) {
             throw new RuntimeException("Could not generate "+toGenerate+" because of an InvocationTargetException, meaning a Constructor threw an exception. Check the bottom of this stacktrace:",e);
+        } catch (NoSuchMethodException e) {
+            throw new RuntimeException("This is not possible. You are dreaming. I hope. Unless your enum has no valueOf method. Haha.",e);
         }
     }
 
-    private <T> T generateInternal(Class<T> toGen) throws IllegalAccessException, InvocationTargetException, InstantiationException {
+    private <T> T generateInternal(Class<T> toGen) throws IllegalAccessException, InvocationTargetException, InstantiationException, NoSuchMethodException {
         int previousLength = path.size();
         List<Field> fields = fieldsOfClassAccessible(toGen);
         T ret = getConstructor(toGen).newInstance();
@@ -136,6 +91,30 @@ public class TOGen {
                     field.set(ret,max.get().generate(path,field,toGen,this));
                 } else if((temp = defaultGenerators.get(field.getType())) != null) {
                     field.set(ret,temp.generate(path,field,toGen,this));
+                } else if(field.getType().getComponentType() != null) {
+                    field.set(ret,DefaultGenerators.annotationGen.generate(path,field,toGen,this));
+                } else if(field.getType().isEnum()) {
+                    Object toSet;
+                    if(field.getAnnotation(TOValue.Enum.class) != null) {
+                        TOValue.Enum e = field.getAnnotation(TOValue.Enum.class);
+                        if(e.enumOrdinal() == -1 && e.enumConstant().equals("")) {
+                            throw new RuntimeException("Field "+ TOValue.listToPath(path)+" in "+toGen+" is annotated with @Enum but does not specify what member to use");
+                        }
+                        if(e.enumOrdinal() != -1 && !e.enumConstant().equals("")) {
+                            throw new RuntimeException("FIeld "+ TOValue.listToPath(path)+" in "+toGen+" is annotated with @Enum and specifies a member in two ways. Only use one at a time");
+                        }
+                        if (e.enumOrdinal() != -1)
+                            try {
+                                toSet = field.getType().getEnumConstants()[e.enumOrdinal()];
+                            } catch (ArrayIndexOutOfBoundsException exc) {throw new RuntimeException("Could not find ordinal"+e.enumOrdinal()+" in "+field.getType());}
+                        else
+                            try {
+                                toSet = field.getType().getMethod("valueOf",String.class).invoke(null,e.enumConstant());
+                            } catch(InvocationTargetException exc) {throw new RuntimeException("Could not find enum constant "+e.enumConstant()+" in "+field.getType()+" for field "+field);}
+                    } else {
+                        toSet = field.getType().getEnumConstants().length == 0 ? null : field.getType().getEnumConstants()[0];
+                    }
+                    field.set(ret,toSet);
                 } else {
                     field.set(ret,generateInternal(field.getType())); // todo loop
                 }
@@ -144,6 +123,10 @@ public class TOGen {
             }
         }
         return ret;
+    }
+
+    enum Test {
+        A,B;
     }
 
 

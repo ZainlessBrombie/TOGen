@@ -394,7 +394,7 @@ public class DefaultGenerators {
             return source.byteValue();
         }
         if(targetType == Boolean.class || targetType == boolean.class) {
-            return source.longValue() != 0 || source.doubleValue() != 0;
+            return source.longValue() != 0;
         }
         if(targetType == Character.class || targetType == char.class) {
             return (char)source.intValue();
