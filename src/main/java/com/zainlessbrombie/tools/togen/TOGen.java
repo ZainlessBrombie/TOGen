@@ -250,7 +250,7 @@ public class TOGen {
     }
 
     public static <T> T defaultGenerate(Class<T> forWhat) {
-       return null; // todo
+       return newGenerator("defaultGen").generateTO(forWhat);
     }
 
     // todo remember that paths are not unique
