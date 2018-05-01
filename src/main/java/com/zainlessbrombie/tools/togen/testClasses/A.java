@@ -42,8 +42,8 @@ public class A {
     double[] n;
 
 
-    @TOValue.Enum(enumClass = TestEnum.class,enumConstant = "B")
-    TestEnum en;
+    @TOValue.EnumArr(enumClass = TestEnum.class,enumOrdinals = {1,0})
+    TestEnum[] en;
 
         /*@TOValue.String("random: {random 1 10} {timestamp} {className} {generated test}  {fieldName} \\\\ {counter} {}")
         String s;

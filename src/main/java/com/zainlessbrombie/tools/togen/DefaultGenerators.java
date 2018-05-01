@@ -2,6 +2,8 @@ package com.zainlessbrombie.tools.togen;
 
 import java.lang.reflect.Array;
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -270,6 +272,44 @@ public class DefaultGenerators {
                 Array.set(ret,i,stringAnnotationGen(path,field,fieldOwner,gen,arr.value()[i]));
             }
             return ret;
+        }
+
+        if(field.getAnnotation(TOValue.EnumArr.class) != null) {
+            TOValue.EnumArr e = field.getAnnotation(TOValue.EnumArr.class);
+            if (e.enumConstants().length != 0 && e.enumOrdinals().length != 0)
+                throw new RuntimeException("@EnumArray in "+fieldOwner+" in path "+TOValue.listToPath(path)+" specifies both enum ordinals and constants. This is not allowed, only use one");
+            Object ret = null;
+            if (e.enumConstants().length != 0) {
+                ret = Array.newInstance(field.getType().getComponentType(), e.enumConstants().length);
+                Method m;
+                try {
+                    m = e.enumClass().getMethod("valueOf", String.class);
+                    m.setAccessible(true);
+                } catch (NoSuchMethodException e1) {
+                    throw new RuntimeException("Could not find valueOf method, this should not have happened",e1);
+                }
+                for (int i = 0; i < e.enumConstants().length; i++) {
+                    try {
+                        Array.set(ret,i,m.invoke(null,e.enumConstants()[i]));
+                    } catch (IllegalAccessException e1) {
+                        throw new RuntimeException("This is impossible. Well almost, did you do something to java security?",e1);
+                    } catch (InvocationTargetException e1) {
+                        throw new RuntimeException("An enum constant for "+field+" could not be found");
+                    }
+                }
+            } else if(e.enumOrdinals().length != 0) {
+               ret = Array.newInstance(field.getType().getComponentType(),e.enumOrdinals().length);
+                for (int i = 0; i < e.enumOrdinals().length; i++) {
+                    try {
+                        Array.set(ret, i, e.enumClass().getEnumConstants()[e.enumOrdinals()[i]]);
+                    } catch (ArrayIndexOutOfBoundsException e1) {
+                        throw new RuntimeException("Could not find enum ordinal "+e.enumOrdinals()[i]+" in "+e.enumClass()+" for "+field);
+                    }
+                }
+            }
+            if(ret != null) { //todo this code is not pretty.
+                return ret;
+            }
         }
 
         return defaultGen.generate(path,field,fieldOwner,gen);

@@ -114,7 +114,7 @@ public class TOValue { // todo enum
          */
         java.lang.String enumConstant() default "";
         /**
-         * Specifies the ordinal to use for the enum. default -1 means use "enumConstant" field. -2 means random.
+         * Specifies the ordinal to use for the enum. default -1 means use "enumConstant" field.
          */
         int enumOrdinal() default -1;
     }
@@ -209,6 +209,20 @@ public class TOValue { // todo enum
     @Target(ElementType.FIELD)
     public @interface NullArr {
         int arrayLength();
+    }
+
+    @Retention(RetentionPolicy.RUNTIME)
+    @Target(ElementType.FIELD)
+    public @interface EnumArr { // todo
+        java.lang.Class<? extends java.lang.Enum<?>> enumClass();
+        /**
+         * The enum constant to pick. empty array (default) means use ordinal instead.
+         */
+        java.lang.String[] enumConstants() default {};
+        /**
+         * Specifies the ordinal to use for the enum. default empty means use "enumConstant" field.
+         */
+        int[] enumOrdinals() default {}; //todo random
     }
 
     @Retention(RetentionPolicy.RUNTIME)

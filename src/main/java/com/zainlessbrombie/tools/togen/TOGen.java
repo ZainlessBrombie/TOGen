@@ -20,7 +20,6 @@ public class TOGen {
         System.out.println("starting test");
         A a = newGenerator("counter").withCounter(100).generateTO(A.class);
         System.out.println(a);
-
     }
 
 
@@ -106,7 +105,7 @@ public class TOGen {
                             } catch (ArrayIndexOutOfBoundsException exc) {throw new RuntimeException("Could not find ordinal"+e.enumOrdinal()+" in "+field.getType());}
                         else
                             try {
-                                Method valueOf = field.getType().getMethod("valueOf",String.class);
+                                Method valueOf = e.enumClass().getMethod("valueOf",String.class);
                                 valueOf.setAccessible(true);
                                 toSet = valueOf.invoke(null,e.enumConstant());
                             } catch(InvocationTargetException exc) {throw new RuntimeException("Could not find enum constant "+e.enumConstant()+" in "+field.getType()+" for field "+field);}
