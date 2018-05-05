@@ -27,7 +27,7 @@ public class TOGen {
 
     SecureRandom random = new SecureRandom(); // todo collection, set
     private List<String> path = new ArrayList<>();
-    private Set<Field> history = new HashSet<>(); // for looping todo
+    private Map<Field,Object> history = new HashMap<>(); // for looping todo
 
     private static final Map<Class<?>,TOValueGen<?>> defaultGenerators = new HashMap<>();
 
@@ -52,7 +52,7 @@ public class TOGen {
 
 
 
-    public <T> T generateTO(Class<T> toGenerate) { //todo path for customgen support
+    public <T> T generateTO(Class<T> toGenerate) {
         try {
             return generateInternal(toGenerate);
         } catch (InstantiationException e) {
@@ -64,6 +64,17 @@ public class TOGen {
         } catch (NoSuchMethodException e) {
             throw new RuntimeException("This is not possible. You are dreaming. I hope. Unless your enum has no valueOf method. Haha.",e);
         }
+    }
+
+    public <T> T generateTO(Class<T> toGenerate, String sourceName) {
+        int before = path.size();
+        try {
+            path.add(sourceName);
+            generateTO(toGenerate);
+        } finally {
+            cutToLength(path,before);
+        }
+
     }
 
     private <T> T generateInternal(Class<T> toGen) throws IllegalAccessException, InvocationTargetException, InstantiationException, NoSuchMethodException {
